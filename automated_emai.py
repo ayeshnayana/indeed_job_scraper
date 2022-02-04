@@ -8,6 +8,8 @@ import smtplib  # To send the email
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+import csv
+
 # For system date and time manipulation
 import datetime
 
@@ -113,5 +115,9 @@ cards, soup = extract_jobs(url, position, location)
 #full_record(cards)
 getting_full_list(soup)
 print(len(records))
-print(records[5])
 
+# save the job data to a csv file
+with open('job_Data_File.csv', 'w', newline='', encoding='utf-8') as f:
+    writer = csv.writer(f)
+    writer.writerow(['job_title', 'company_Name', 'job_url', 'job_Location', 'job_Summery', 'job_posted_Date', 'job_Salary'])
+    writer.writerows(records)
