@@ -54,38 +54,64 @@ def extract_jobs(url, position, location):
     # cards = soup.find_all('div', 'job_seen_beacon')
     cards = soup.find_all('a', 'tapItem')
     # print(len(cards))
-    return cards
+    return cards, soup
     # card = cards[1]
 
 
 def get_record(card):
     tag = card.h2.span
+
     job_title = tag.get('title')
+
     company_Name = card.find('span', {"class": "companyName"}).text.strip()
-    job_url = 'https://www.indeed.com' + card.a.get('href')
+
+    try:
+        job_url = 'https://www.indeed.com' + card.a.get('href')
+    except AttributeError:
+        job_url = ''
+
     job_Location = card.find('div', 'companyLocation').text
+
     job_Summery = card.find('li').text.strip()
+
     job_posted_Date = card.find('span', 'date').text.strip()
+
     today = datetime.datetime.now().strftime('%Y-%m-%d')
+
     try:
         job_Salary = card.find('span', 'estimated-salary').text.strip()
     except AttributeError:
         job_Salary = ''
 
-    record = (job_title, company_Name, job_url, job_Location, job_Summery, job_posted_Date)
+    record = (job_title, company_Name, job_url, job_Location, job_Summery, job_posted_Date, job_Salary)
     return record
-
 
 def full_record(cards):
     for card in cards:
         record = get_record(card)
         records.append(record)
 
+def getting_full_list(soup):
+    while True:
+        try:
+            url = 'https://www.indeed.com' + soup.find('a', {'aria-label': 'Next'}).get('href')
+        except AttributeError:
+            break
 
-position = 'work from home'
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        cards = soup.find_all('a', 'tapItem')
+
+        full_record(cards)
+
+
+position = 'programmer'
 location = 'grand rapids MI'
 
 url = get_url(position, location)
-cards = extract_jobs(url, position, location)
-full_record(cards)
-print(records[2])
+cards, soup = extract_jobs(url, position, location)
+#full_record(cards)
+getting_full_list(soup)
+print(len(records))
+print(records[5])
+
